@@ -28,14 +28,27 @@ export default async function handler(req, res) {
     'Elegante y sofisticado': 'Vocabulario refinado. Tono medido. Confianza discreta. Sin exageraciones.',
   };
 
-  const platformLimits = {
-    'LinkedIn': 220, 'Instagram': 150, 'Twitter / X': 160, 'Genérica': 200, 'Generic': 200,
+  const platformLengthEN = {
+    'LinkedIn': 'Write 3 to 5 sentences. LinkedIn allows long bios — use the space to tell a compelling story, mention key achievements, and end with what you offer or are looking for.',
+    'Instagram': 'Write 2 to 3 punchy sentences. Instagram bios are short but must pack a punch — every word counts.',
+    'Twitter / X': 'Write 1 to 2 sharp sentences. Twitter bios are ultra-short — make it memorable and intriguing.',
+    'Generic': 'Write 3 to 4 sentences. Balance substance with readability.',
   };
 
-  const charLimit = platformLimits[platform] || 200;
+  const platformLengthES = {
+    'LinkedIn': 'Escribe entre 3 y 5 frases. LinkedIn permite bios largas — usa el espacio para contar una historia convincente, mencionar logros clave y terminar con lo que ofreces o buscas.',
+    'Instagram': 'Escribe entre 2 y 3 frases contundentes. Las bios de Instagram son cortas pero deben impactar — cada palabra cuenta.',
+    'Twitter / X': 'Escribe 1 o 2 frases precisas. Las bios de Twitter son ultracortas — hazla memorable e intrigante.',
+    'Genérica': 'Escribe entre 3 y 4 frases. Equilibra sustancia con legibilidad.',
+  };
+
   const toneGuide = isEN
     ? (toneGuidanceEN[tone] || 'Professional and confident.')
     : (toneGuidanceES[tone] || 'Profesional y seguro.');
+
+  const lengthGuide = isEN
+    ? (platformLengthEN[platform] || platformLengthEN['Generic'])
+    : (platformLengthES[platform] || platformLengthES['Genérica']);
 
   const prompt = isEN
     ? `You are an elite personal branding copywriter. Your bios have been featured in Forbes, LinkedIn Top Voices, and TED profiles.
@@ -45,23 +58,28 @@ TASK: Write exactly 3 distinct professional bios in ENGLISH for ${platform}.
 PERSON PROFILE:
 - Role: ${profession}
 - Tone: ${tone} → ${toneGuide}
-${keywords ? `- Key info: ${keywords}` : ''}
+${keywords ? `- Key info to weave in naturally: ${keywords}` : ''}
 
-STRICT REQUIREMENTS:
-1. Each bio MUST be under ${charLimit} characters
-2. Each bio must use a completely different OPENING HOOK:
-   - Bio A: Start with what they DO (action-first)
-   - Bio B: Start with the IMPACT or result they create
-   - Bio C: Start with a HUMAN element — personality, passion or story
-3. Never use: "passionate about", "results-driven", "leverage", "synergies", "dynamic"
-4. No bullet points, no hashtags, no quotes
-5. Every word must earn its place — cut all filler
-6. Separate each bio with exactly: ---BIO---
+LENGTH & DEPTH GUIDE:
+${lengthGuide}
+Go deep — mention specific skills, experiences, impact, and personality. A great bio feels rich, not thin.
+
+STRUCTURE — each bio must use a different OPENING HOOK:
+- Bio A: Start with what they DO (action-first) — then expand with context, achievements and value
+- Bio B: Start with the IMPACT or result they create — then explain how and what drives them
+- Bio C: Start with a HUMAN element — personality, passion or story — then connect it to their professional value
+
+STRICT RULES:
+- Never use: "passionate about", "results-driven", "leverage", "synergies", "dynamic", "proactive", "go-getter"
+- No bullet points, no hashtags, no quotes
+- Write in flowing, natural prose
+- Every sentence must add new information — no repetition
+- Separate each bio with exactly: ---BIO---
 
 STRONG OPENING EXAMPLES:
-- "Turns complex data into decisions that move markets."
-- "Built 3 startups. Failed twice. Now I teach what actually works."
-- "The architect behind systems used by 50M people daily."
+- "Turns complex data into decisions that move markets. With 15 years bridging engineering and business strategy, I've helped Fortune 500 companies cut costs by 30% without losing an ounce of innovation."
+- "The systems running quietly behind 50 million daily users? I built several of them. As a Solutions Architect with two decades of experience, I specialize in designing infrastructure that scales without drama."
+- "I fell in love with technology at 12, took apart my first computer, and never really stopped. Today I lead architecture teams across cloud, AI, and data — turning chaos into elegant, resilient systems."
 
 Respond ONLY with the 3 bios separated by ---BIO---. No labels, no numbering, no extra text.`
     : `Eres un copywriter de personal branding de élite. Tus bios han aparecido en perfiles de Forbes, LinkedIn Top Voices y TED.
@@ -71,23 +89,28 @@ TAREA: Escribe exactamente 3 bios profesionales distintas en ESPAÑOL para ${pla
 PERFIL DE LA PERSONA:
 - Rol: ${profession}
 - Tono: ${tone} → ${toneGuide}
-${keywords ? `- Información clave: ${keywords}` : ''}
+${keywords ? `- Información clave a integrar de forma natural: ${keywords}` : ''}
 
-REQUISITOS ESTRICTOS:
-1. Cada bio DEBE tener menos de ${charLimit} caracteres
-2. Cada bio debe usar un GANCHO DE APERTURA completamente diferente:
-   - Bio A: Empieza con lo que HACE (acción primero)
-   - Bio B: Empieza con el IMPACTO o resultado que genera
-   - Bio C: Empieza con un elemento HUMANO — personalidad, pasión o historia
-3. Nunca uses: "apasionado por", "orientado a resultados", "sinergia", "dinámico", "proactivo"
-4. Sin bullets, sin hashtags, sin comillas
-5. Cada palabra debe ganarse su lugar — elimina todo el relleno
-6. Separa cada bio con exactamente: ---BIO---
+GUÍA DE LONGITUD Y PROFUNDIDAD:
+${lengthGuide}
+Ve a fondo — menciona habilidades específicas, experiencias, impacto y personalidad. Una gran bio se siente rica, no vacía.
+
+ESTRUCTURA — cada bio debe usar un GANCHO DE APERTURA diferente:
+- Bio A: Empieza con lo que HACE (acción primero) — luego expande con contexto, logros y valor
+- Bio B: Empieza con el IMPACTO o resultado que genera — luego explica cómo y qué le motiva
+- Bio C: Empieza con un elemento HUMANO — personalidad, pasión o historia — y conéctalo con su valor profesional
+
+REGLAS ESTRICTAS:
+- Nunca uses: "apasionado por", "orientado a resultados", "sinergia", "dinámico", "proactivo"
+- Sin bullets, sin hashtags, sin comillas
+- Escribe en prosa fluida y natural
+- Cada frase debe añadir información nueva — sin repetición
+- Separa cada bio con exactamente: ---BIO---
 
 EJEMPLOS DE APERTURAS POTENTES:
-- "Convierte datos complejos en decisiones que mueven mercados."
-- "Construí 3 startups. Fallé dos veces. Ahora enseño lo que realmente funciona."
-- "El arquitecto detrás de sistemas usados por 50 millones de personas."
+- "Convierte datos complejos en decisiones que mueven mercados. Con 15 años conectando ingeniería y estrategia de negocio, he ayudado a empresas del Fortune 500 a reducir costes un 30% sin perder capacidad de innovación."
+- "Los sistemas que corren silenciosamente detrás de 50 millones de usuarios diarios? He construido varios. Como Arquitecto de Soluciones con dos décadas de experiencia, me especializo en infraestructuras que escalan sin dramas."
+- "Me enamoré de la tecnología a los 12 años, desmontando mi primer ordenador, y nunca paré. Hoy lidero equipos de arquitectura en cloud, IA y datos — convirtiendo el caos en sistemas elegantes y resilientes."
 
 Responde ÚNICAMENTE con las 3 bios separadas por ---BIO---. Sin etiquetas, sin numeración, sin texto extra.`;
 
@@ -104,12 +127,12 @@ Responde ÚNICAMENTE con las 3 bios separadas por ---BIO---. Sin etiquetas, sin 
           {
             role: 'system',
             content: isEN
-              ? 'You are an elite personal branding copywriter. You write sharp, memorable, human bios. You never use clichés. Every word counts.'
-              : 'Eres un copywriter de personal branding de élite. Escribes bios memorables, directas y humanas. Nunca usas clichés. Cada palabra cuenta.'
+              ? 'You are an elite personal branding copywriter. You write rich, sharp, memorable bios that feel human and specific. You never use clichés or generic phrases. You go deep, not shallow.'
+              : 'Eres un copywriter de personal branding de élite. Escribes bios ricas, memorables y humanas, específicas y directas. Nunca usas clichés ni frases genéricas. Vas a fondo, no a lo superficial.'
           },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 1000,
+        max_tokens: 1500,
         temperature: 0.85,
       }),
     });
