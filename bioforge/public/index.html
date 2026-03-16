@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioForge — Bios profesionales con IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0f0e0c; --paper: #f5f0e8; --cream: #ede7d9;
+    --gold: #c9a84c; --muted: #7a7060; --white: #fefcf8;
+  }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+  header { text-align: center; padding: 3rem 1.5rem 2rem; border-bottom: 1px solid #d4c9b0; }
+  .logo-mark { font-size: 0.65rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.5rem; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.1; }
+  h1 em { color: var(--gold); }
+  .tagline { margin-top: 0.8rem; color: var(--muted); font-size: 0.95rem; letter-spacing: 0.04em; }
+  .counter-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--cream); border: 1px solid #d4c9b0; border-radius: 100px; padding: 0.3rem 0.9rem; font-size: 0.75rem; color: var(--muted); margin-top: 1rem; }
+  main { max-width: 700px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+  .card { background: var(--white); border: 1px solid #d4c9b0; border-radius: 2px; padding: 2rem; box-shadow: 4px 4px 0 #d4c9b0; margin-bottom: 2rem; }
+  .card-label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem; }
+  .card-label::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--gold); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  @media(max-width:520px){ .grid2 { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  input, select, textarea { background: var(--paper); border: 1px solid #c8bfad; border-radius: 2px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--ink); outline: none; width: 100%; transition: border-color 0.2s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 75px; }
+  select { appearance: none; cursor: pointer; }
+  .tone-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+  .tone-pill { padding: 0.4rem 0.9rem; border: 1px solid #c8bfad; border-radius: 100px; font-size: 0.82rem; cursor: pointer; background: var(--paper); color: var(--muted); transition: all 0.15s; user-select: none; }
+  .tone-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-gen { width: 100%; margin-top: 1.5rem; padding: 1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+  .btn-gen:hover { background: #2a2820; }
+  .btn-gen:disabled { background: #b0a898; cursor: not-allowed; }
+  .error-msg { background: #fff0f0; border: 1px solid #f5c6c6; border-radius: 2px; padding: 0.8rem 1rem; color: #b04040; font-size: 0.85rem; margin-top: 1rem; display: none; }
+  #results { display: none; }
+  .results-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; text-align: center; margin-bottom: 1.5rem; }
+  .ornament { text-align: center; color: var(--gold); letter-spacing: 0.5em; margin: 0.5rem 0 1.5rem; opacity: 0.6; }
+  .bio-card { background: var(--white); border: 1px solid #d4c9b0; border-radius: 2px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 3px 3px 0 #d4c9b0; animation: fadeUp 0.4s ease both; }
+  .bio-card:nth-child(2){ animation-delay:0.1s; }
+  .bio-card:nth-child(3){ animation-delay:0.2s; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .bio-version { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
+  .bio-version::after { content:''; flex:1; height:1px; background:#e0d8cc; }
+  .bio-text { font-size: 0.95rem; line-height: 1.7; }
+  .bio-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+  .btn-copy { padding: 0.4rem 1rem; background: transparent; border: 1px solid #c8bfad; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; cursor: pointer; color: var(--muted); letter-spacing: 0.08em; transition: all 0.15s; }
+  .btn-copy:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-copy.copied { border-color: #4caf50; color: #4caf50; }
+  .btn-regen { display: block; margin: 1.5rem auto 0; padding: 0.5rem 1.5rem; background: transparent; border: 1px solid #c8bfad; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer; color: var(--muted); }
+  footer { text-align: center; padding: 2rem; border-top: 1px solid #d4c9b0; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo-mark">✦ BioForge</span>
+  <h1>Tu bio <em>perfecta</em>,<br>en segundos</h1>
+  <p class="tagline">Bios profesionales para LinkedIn, Instagram y Twitter</p>
+  <div class="counter-badge">✦ <strong id="gen-count">0</strong> bios generadas</div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-label">Cuéntanos sobre ti</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Tu profesión o rol</label>
+        <input id="profession" type="text" placeholder="Ej: Diseñadora UX freelance" />
+      </div>
+      <div class="field">
+        <label>Red social</label>
+        <select id="platform">
+          <option>LinkedIn</option>
+          <option>Instagram</option>
+          <option>Twitter / X</option>
+          <option>Genérica</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:1rem">
+      <label>Palabras clave o logros (opcional)</label>
+      <textarea id="keywords" placeholder="Ej: 5 años de experiencia, startups, diseño de producto..."></textarea>
+    </div>
+    <div class="field">
+      <label>Tono</label>
+      <div class="tone-group" id="tones">
+        <span class="tone-pill active" data-tone="Profesional">Profesional</span>
+        <span class="tone-pill" data-tone="Creativo">Creativo</span>
+        <span class="tone-pill" data-tone="Cercano y humano">Cercano</span>
+        <span class="tone-pill" data-tone="Audaz y directo">Audaz</span>
+        <span class="tone-pill" data-tone="Elegante y sofisticado">Elegante</span>
+      </div>
+    </div>
+    <div class="error-msg" id="error"></div>
+    <button class="btn-gen" id="btn" onclick="generate()">✦ &nbsp; Generar mis bios</button>
+  </div>
+
+  <div id="results">
+    <div class="ornament">— ✦ —</div>
+    <p class="results-title">Tus 3 bios listas</p>
+    <div id="bios"></div>
+    <button class="btn-regen" onclick="generate()">↺ &nbsp; Regenerar</button>
+  </div>
+</main>
+
+<footer>BioForge &nbsp;·&nbsp; Impulsado por IA &nbsp;·&nbsp; Gratis</footer>
+
+<script>
+  let count = parseInt(localStorage.getItem('bc') || '0');
+  document.getElementById('gen-count').textContent = count;
+
+  document.querySelectorAll('.tone-pill').forEach(p => {
+    p.addEventListener('click', () => {
+      document.querySelectorAll('.tone-pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+    });
+  });
+
+  async function generate() {
+    const profession = document.getElementById('profession').value.trim();
+    const platform = document.getElementById('platform').value;
+    const keywords = document.getElementById('keywords').value.trim();
+    const tone = document.querySelector('.tone-pill.active')?.dataset.tone || 'Profesional';
+    const errEl = document.getElementById('error');
+    const btn = document.getElementById('btn');
+
+    if (!profession) { errEl.textContent = 'Por favor escribe tu profesión.'; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Generando...';
+    document.getElementById('results').style.display = 'none';
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profession, platform, keywords, tone })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al generar');
+
+      const labels = ['Versión A', 'Versión B', 'Versión C'];
+      const container = document.getElementById('bios');
+      container.innerHTML = '';
+      data.bios.forEach((bio, i) => {
+        container.innerHTML += `
+          <div class="bio-card">
+            <div class="bio-version">${labels[i]}</div>
+            <p class="bio-text">${bio}</p>
+            <div class="bio-actions">
+              <button class="btn-copy" onclick="copy(this, \`${bio.replace(/`/g,'\\`')}\`)">Copiar</button>
+            </div>
+          </div>`;
+      });
+
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      count++; localStorage.setItem('bc', count);
+      document.getElementById('gen-count').textContent = count;
+    } catch(e) {
+      errEl.textContent = e.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✦   Generar mis bios';
+    }
+  }
+
+  function copy(btn, text) {
+    navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  }
+</script>
+</body>
+</html>
