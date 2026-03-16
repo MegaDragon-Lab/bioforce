@@ -6,17 +6,34 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { profession, platform, keywords, tone } = req.body;
+  const { profession, platform, keywords, tone, lang } = req.body;
 
-  if (!profession) return res.status(400).json({ error: 'Falta la profesión' });
+  if (!profession) return res.status(400).json({ error: 'Missing profession' });
 
-  const prompt = `Eres un experto en personal branding. Genera exactamente 3 bios profesionales distintas para ${platform} para alguien con este perfil:
+  const isEN = lang === 'en';
+
+  const prompt = isEN
+    ? `You are a personal branding expert. Generate exactly 3 distinct professional bios in ENGLISH for ${platform} for someone with this profile:
+- Profession/Role: ${profession}
+- Desired tone: ${tone}
+${keywords ? `- Keywords / achievements: ${keywords}` : ''}
+
+Rules:
+- Each bio must differ in structure and approach
+- Write entirely in English
+- Adapt length to ${platform} limits (LinkedIn: up to 220 chars, Instagram: 150 chars, Twitter/X: 160 chars, Generic: 200 chars)
+- No quotes, plain text only
+- Separate each bio with exactly: ---BIO---
+
+Respond ONLY with the 3 bios separated by ---BIO--- and nothing else.`
+    : `Eres un experto en personal branding. Genera exactamente 3 bios profesionales distintas en ESPAÑOL para ${platform} para alguien con este perfil:
 - Profesión/Rol: ${profession}
 - Tono deseado: ${tone}
 ${keywords ? `- Palabras clave / logros: ${keywords}` : ''}
 
 Reglas:
 - Cada bio debe ser diferente en estructura y enfoque
+- Escribe completamente en español
 - Adapta la longitud al límite de ${platform} (LinkedIn: hasta 220 chars, Instagram: 150 chars, Twitter/X: 160 chars, Genérica: 200 chars)
 - No uses comillas, solo el texto puro
 - Separa cada bio con exactamente: ---BIO---
@@ -39,12 +56,12 @@ Responde ÚNICAMENTE con las 3 bios separadas por ---BIO--- sin ningún otro tex
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'Error en Groq');
+    if (!response.ok) throw new Error(data.error?.message || 'Groq API error');
 
     const text = data.choices?.[0]?.message?.content || '';
     const bios = text.split('---BIO---').map(b => b.trim()).filter(b => b.length > 10);
 
-    if (bios.length === 0) throw new Error('No se generaron bios');
+    if (bios.length === 0) throw new Error('No bios generated');
 
     res.status(200).json({ bios: bios.slice(0, 3) });
   } catch (err) {
