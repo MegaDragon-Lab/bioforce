@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BioForge — Bios profesionales con IA</title>
+<title>BioForge — Professional bios with AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,18 +12,25 @@
     --gold: #c9a84c; --muted: #7a7060; --white: #fefcf8;
   }
   body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
-  header { text-align: center; padding: 3rem 1.5rem 2rem; border-bottom: 1px solid #d4c9b0; }
+  header { text-align: center; padding: 3rem 1.5rem 2rem; border-bottom: 1px solid #d4c9b0; position: relative; }
   .logo-mark { font-size: 0.65rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.5rem; }
   h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.1; }
   h1 em { color: var(--gold); }
   .tagline { margin-top: 0.8rem; color: var(--muted); font-size: 0.95rem; letter-spacing: 0.04em; }
   .counter-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--cream); border: 1px solid #d4c9b0; border-radius: 100px; padding: 0.3rem 0.9rem; font-size: 0.75rem; color: var(--muted); margin-top: 1rem; }
+
+  /* Language switcher */
+  .lang-switcher { position: absolute; top: 1.5rem; right: 1.5rem; display: flex; gap: 0; border: 1px solid #d4c9b0; border-radius: 2px; overflow: hidden; }
+  .lang-btn { padding: 0.35rem 0.7rem; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; cursor: pointer; border: none; background: var(--paper); color: var(--muted); transition: all 0.15s; }
+  .lang-btn.active { background: var(--ink); color: var(--paper); }
+  .lang-btn:hover:not(.active) { background: var(--cream); }
+
   main { max-width: 700px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
   .card { background: var(--white); border: 1px solid #d4c9b0; border-radius: 2px; padding: 2rem; box-shadow: 4px 4px 0 #d4c9b0; margin-bottom: 2rem; }
   .card-label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem; }
   .card-label::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--gold); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-  @media(max-width:520px){ .grid2 { grid-template-columns: 1fr; } }
+  @media(max-width:520px){ .grid2 { grid-template-columns: 1fr; } .card { padding: 1.5rem; } .lang-switcher { top: 1rem; right: 1rem; } }
   .field { display: flex; flex-direction: column; gap: 0.4rem; }
   label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
   input, select, textarea { background: var(--paper); border: 1px solid #c8bfad; border-radius: 2px; padding: 0.7rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--ink); outline: none; width: 100%; transition: border-color 0.2s; }
@@ -33,6 +40,7 @@
   .tone-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
   .tone-pill { padding: 0.4rem 0.9rem; border: 1px solid #c8bfad; border-radius: 100px; font-size: 0.82rem; cursor: pointer; background: var(--paper); color: var(--muted); transition: all 0.15s; user-select: none; }
   .tone-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tone-pill:hover:not(.active) { border-color: var(--gold); color: var(--ink); }
   .btn-gen { width: 100%; margin-top: 1.5rem; padding: 1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
   .btn-gen:hover { background: #2a2820; }
   .btn-gen:disabled { background: #b0a898; cursor: not-allowed; }
@@ -58,125 +66,246 @@
 <body>
 
 <header>
+  <!-- Language switcher -->
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('es')">ES</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+
   <span class="logo-mark">✦ BioForge</span>
-  <h1>Tu bio <em>perfecta</em>,<br>en segundos</h1>
-  <p class="tagline">Bios profesionales para LinkedIn, Instagram y Twitter</p>
-  <div class="counter-badge">✦ <strong id="gen-count">0</strong> bios generadas</div>
+  <h1 id="h1-line1"></h1>
+  <p class="tagline" id="tagline"></p>
+  <div class="counter-badge">✦ <strong id="gen-count">0</strong> <span id="badge-label"></span></div>
 </header>
 
 <main>
   <div class="card">
-    <div class="card-label">Cuéntanos sobre ti</div>
+    <div class="card-label" id="card-label"></div>
     <div class="grid2">
       <div class="field">
-        <label>Tu profesión o rol</label>
-        <input id="profession" type="text" placeholder="Ej: Diseñadora UX freelance" />
+        <label id="lbl-profession"></label>
+        <input id="profession" type="text" />
       </div>
       <div class="field">
-        <label>Red social</label>
-        <select id="platform">
-          <option>LinkedIn</option>
-          <option>Instagram</option>
-          <option>Twitter / X</option>
-          <option>Genérica</option>
-        </select>
+        <label id="lbl-platform"></label>
+        <select id="platform"></select>
       </div>
     </div>
     <div class="field" style="margin-bottom:1rem">
-      <label>Palabras clave o logros (opcional)</label>
-      <textarea id="keywords" placeholder="Ej: 5 años de experiencia, startups, diseño de producto..."></textarea>
+      <label id="lbl-keywords"></label>
+      <textarea id="keywords"></textarea>
     </div>
     <div class="field">
-      <label>Tono</label>
-      <div class="tone-group" id="tones">
-        <span class="tone-pill active" data-tone="Profesional">Profesional</span>
-        <span class="tone-pill" data-tone="Creativo">Creativo</span>
-        <span class="tone-pill" data-tone="Cercano y humano">Cercano</span>
-        <span class="tone-pill" data-tone="Audaz y directo">Audaz</span>
-        <span class="tone-pill" data-tone="Elegante y sofisticado">Elegante</span>
-      </div>
+      <label id="lbl-tone"></label>
+      <div class="tone-group" id="tones"></div>
     </div>
     <div class="error-msg" id="error"></div>
-    <button class="btn-gen" id="btn" onclick="generate()">✦ &nbsp; Generar mis bios</button>
+    <button class="btn-gen" id="btn" onclick="generate()"></button>
   </div>
 
   <div id="results">
     <div class="ornament">— ✦ —</div>
-    <p class="results-title">Tus 3 bios listas</p>
+    <p class="results-title" id="results-title"></p>
     <div id="bios"></div>
-    <button class="btn-regen" onclick="generate()">↺ &nbsp; Regenerar</button>
+    <button class="btn-regen" id="btn-regen" onclick="generate()"></button>
   </div>
 </main>
 
-<footer>BioForge &nbsp;·&nbsp; Impulsado por IA &nbsp;·&nbsp; Gratis</footer>
+<footer id="footer-text"></footer>
 
 <script>
-  let count = parseInt(localStorage.getItem('bc') || '0');
-  document.getElementById('gen-count').textContent = count;
+const i18n = {
+  es: {
+    h1: 'Tu bio <em>perfecta</em>,<br>en segundos',
+    tagline: 'Bios profesionales para LinkedIn, Instagram y Twitter',
+    badge: 'bios generadas',
+    cardLabel: 'Cuéntanos sobre ti',
+    lblProfession: 'Tu profesión o rol',
+    lblPlatform: 'Red social',
+    lblKeywords: 'Palabras clave o logros (opcional)',
+    lblTone: 'Tono',
+    platforms: ['LinkedIn', 'Instagram', 'Twitter / X', 'Genérica'],
+    tones: [
+      { label: 'Profesional', value: 'Profesional' },
+      { label: 'Creativo', value: 'Creativo' },
+      { label: 'Cercano', value: 'Cercano y humano' },
+      { label: 'Audaz', value: 'Audaz y directo' },
+      { label: 'Elegante', value: 'Elegante y sofisticado' }
+    ],
+    professionPlaceholder: 'Ej: Diseñadora UX freelance',
+    keywordsPlaceholder: 'Ej: 5 años de experiencia, startups, diseño de producto...',
+    btnGenerate: '✦   Generar mis bios',
+    btnGenerating: 'Generando...',
+    btnRegen: '↺   Regenerar',
+    resultsTitle: 'Tus 3 bios listas',
+    versions: ['Versión A', 'Versión B', 'Versión C'],
+    copy: 'Copiar',
+    copied: '✓ Copiado',
+    errorProfession: 'Por favor escribe tu profesión.',
+    errorGeneral: 'Error al generar. Inténtalo de nuevo.',
+    footer: 'BioForge · Impulsado por IA · Gratis',
+    promptIntro: (profession, platform, tone, keywords) =>
+      `Eres un experto en personal branding. Genera exactamente 3 bios profesionales distintas para ${platform} para alguien con este perfil:
+- Profesión/Rol: ${profession}
+- Tono deseado: ${tone}
+${keywords ? `- Palabras clave / logros: ${keywords}` : ''}
+Reglas:
+- Cada bio debe ser diferente en estructura y enfoque
+- Adapta la longitud al límite de ${platform} (LinkedIn: hasta 220 chars, Instagram: 150 chars, Twitter/X: 160 chars, Genérica: 200 chars)
+- No uses comillas, solo el texto puro
+- Separa cada bio con exactamente: ---BIO---
+Responde ÚNICAMENTE con las 3 bios separadas por ---BIO--- sin ningún otro texto.`
+  },
+  en: {
+    h1: 'Your <em>perfect</em> bio,<br>in seconds',
+    tagline: 'Professional bios for LinkedIn, Instagram and Twitter',
+    badge: 'bios generated',
+    cardLabel: 'Tell us about you',
+    lblProfession: 'Your profession or role',
+    lblPlatform: 'Social network',
+    lblKeywords: 'Keywords or achievements (optional)',
+    lblTone: 'Tone',
+    platforms: ['LinkedIn', 'Instagram', 'Twitter / X', 'Generic'],
+    tones: [
+      { label: 'Professional', value: 'Professional' },
+      { label: 'Creative', value: 'Creative' },
+      { label: 'Friendly', value: 'Friendly and human' },
+      { label: 'Bold', value: 'Bold and direct' },
+      { label: 'Elegant', value: 'Elegant and sophisticated' }
+    ],
+    professionPlaceholder: 'e.g. Freelance UX Designer',
+    keywordsPlaceholder: 'e.g. 5 years experience, startups, product design, ex-Google...',
+    btnGenerate: '✦   Generate my bios',
+    btnGenerating: 'Generating...',
+    btnRegen: '↺   Regenerate',
+    resultsTitle: 'Your 3 bios are ready',
+    versions: ['Version A', 'Version B', 'Version C'],
+    copy: 'Copy',
+    copied: '✓ Copied',
+    errorProfession: 'Please enter your profession or role.',
+    errorGeneral: 'Error generating bios. Please try again.',
+    footer: 'BioForge · Powered by AI · Free',
+    promptIntro: (profession, platform, tone, keywords) =>
+      `You are a personal branding expert. Generate exactly 3 distinct professional bios for ${platform} for someone with this profile:
+- Profession/Role: ${profession}
+- Desired tone: ${tone}
+${keywords ? `- Keywords / achievements: ${keywords}` : ''}
+Rules:
+- Each bio must differ in structure and approach
+- Adapt length to ${platform} limits (LinkedIn: up to 220 chars, Instagram: 150 chars, Twitter/X: 160 chars, Generic: 200 chars)
+- No quotes, plain text only
+- Separate each bio with exactly: ---BIO---
+Respond ONLY with the 3 bios separated by ---BIO--- and nothing else.`
+  }
+};
 
-  document.querySelectorAll('.tone-pill').forEach(p => {
-    p.addEventListener('click', () => {
-      document.querySelectorAll('.tone-pill').forEach(x => x.classList.remove('active'));
-      p.classList.add('active');
+let currentLang = localStorage.getItem('lang') || 'es';
+let currentTone = 0;
+let count = parseInt(localStorage.getItem('bc') || '0');
+document.getElementById('gen-count').textContent = count;
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === lang.toUpperCase()));
+  document.documentElement.lang = lang;
+  renderUI();
+}
+
+function renderUI() {
+  const t = i18n[currentLang];
+  document.getElementById('h1-line1').innerHTML = t.h1;
+  document.getElementById('tagline').textContent = t.tagline;
+  document.getElementById('badge-label').textContent = t.badge;
+  document.getElementById('card-label').textContent = t.cardLabel;
+  document.getElementById('lbl-profession').textContent = t.lblProfession;
+  document.getElementById('lbl-platform').textContent = t.lblPlatform;
+  document.getElementById('lbl-keywords').textContent = t.lblKeywords;
+  document.getElementById('lbl-tone').textContent = t.lblTone;
+  document.getElementById('profession').placeholder = t.professionPlaceholder;
+  document.getElementById('keywords').placeholder = t.keywordsPlaceholder;
+  document.getElementById('btn').textContent = t.btnGenerate;
+  document.getElementById('btn-regen').textContent = t.btnRegen;
+  document.getElementById('results-title').textContent = t.resultsTitle;
+  document.getElementById('footer-text').textContent = t.footer;
+
+  // Platforms
+  const sel = document.getElementById('platform');
+  const current = sel.value;
+  sel.innerHTML = t.platforms.map(p => `<option>${p}</option>`).join('');
+  if (current) sel.value = current;
+
+  // Tones
+  const tonesEl = document.getElementById('tones');
+  tonesEl.innerHTML = t.tones.map((tone, i) =>
+    `<span class="tone-pill ${i === currentTone ? 'active' : ''}" onclick="selectTone(${i})">${tone.label}</span>`
+  ).join('');
+}
+
+function selectTone(i) {
+  currentTone = i;
+  document.querySelectorAll('.tone-pill').forEach((p, idx) => p.classList.toggle('active', idx === i));
+}
+
+async function generate() {
+  const t = i18n[currentLang];
+  const profession = document.getElementById('profession').value.trim();
+  const platform = document.getElementById('platform').value;
+  const keywords = document.getElementById('keywords').value.trim();
+  const tone = t.tones[currentTone].value;
+  const errEl = document.getElementById('error');
+  const btn = document.getElementById('btn');
+
+  if (!profession) { errEl.textContent = t.errorProfession; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = t.btnGenerating;
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profession, platform, keywords, tone, lang: currentLang })
     });
-  });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || t.errorGeneral);
 
-  async function generate() {
-    const profession = document.getElementById('profession').value.trim();
-    const platform = document.getElementById('platform').value;
-    const keywords = document.getElementById('keywords').value.trim();
-    const tone = document.querySelector('.tone-pill.active')?.dataset.tone || 'Profesional';
-    const errEl = document.getElementById('error');
-    const btn = document.getElementById('btn');
+    const container = document.getElementById('bios');
+    container.innerHTML = '';
+    data.bios.forEach((bio, i) => {
+      container.innerHTML += `
+        <div class="bio-card">
+          <div class="bio-version">${t.versions[i]}</div>
+          <p class="bio-text">${bio}</p>
+          <div class="bio-actions">
+            <button class="btn-copy" onclick="copyBio(this, \`${bio.replace(/`/g,'\\`')}\`)">${t.copy}</button>
+          </div>
+        </div>`;
+    });
 
-    if (!profession) { errEl.textContent = 'Por favor escribe tu profesión.'; errEl.style.display = 'block'; return; }
-    errEl.style.display = 'none';
-    btn.disabled = true;
-    btn.textContent = 'Generando...';
-    document.getElementById('results').style.display = 'none';
-
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profession, platform, keywords, tone })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al generar');
-
-      const labels = ['Versión A', 'Versión B', 'Versión C'];
-      const container = document.getElementById('bios');
-      container.innerHTML = '';
-      data.bios.forEach((bio, i) => {
-        container.innerHTML += `
-          <div class="bio-card">
-            <div class="bio-version">${labels[i]}</div>
-            <p class="bio-text">${bio}</p>
-            <div class="bio-actions">
-              <button class="btn-copy" onclick="copy(this, \`${bio.replace(/`/g,'\\`')}\`)">Copiar</button>
-            </div>
-          </div>`;
-      });
-
-      document.getElementById('results').style.display = 'block';
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-      count++; localStorage.setItem('bc', count);
-      document.getElementById('gen-count').textContent = count;
-    } catch(e) {
-      errEl.textContent = e.message;
-      errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '✦   Generar mis bios';
-    }
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    count++; localStorage.setItem('bc', count);
+    document.getElementById('gen-count').textContent = count;
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t.btnGenerate;
   }
+}
 
-  function copy(btn, text) {
-    navigator.clipboard.writeText(text);
-    btn.textContent = '✓ Copiado';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
-  }
+function copyBio(btn, text) {
+  const t = i18n[currentLang];
+  navigator.clipboard.writeText(text);
+  btn.textContent = t.copied;
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = t.copy; btn.classList.remove('copied'); }, 2000);
+}
+
+renderUI();
 </script>
 </body>
 </html>
